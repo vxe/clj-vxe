@@ -3,12 +3,15 @@ be in every project
 
 #+BEGIN_SRC clojure :tangle core.clj
   (ns clj-vxe.core
-    (:require [yaml.core]
-              [clojure.data.xml]
-              [clj-http.client]
-              [cemerick.pomegranate]
-              [java-time])
-    (:use [clojure.java.shell :only [sh]]))
+    (:require 
+     [me.raynes.conch.low-level]
+     [yaml.core]
+     [clojure.data.xml]
+     [clj-http.client]
+     [cemerick.pomegranate]
+     [java-time])
+    (:use
+     [clojure.java.shell :only [sh]]))
 
 
 #+END_SRC
@@ -315,7 +318,54 @@ be in every project
    #+END_SRC
 
 * emacs/cider
-* experimental
+* repl
+** unix terminal emulation
+*** constants
+**** os diagnostics
+     #+BEGIN_SRC clojure :tangle core.clj
+  (def os-diagnostics (str "set -o xtrace; hostname -f;rolename -l;free -mh;dmesg -T | grep -i error | grep -v usb | wc -l ;dmesg -T | grep -i error | grep -i 'sd[a-z]' | tail -30 ;lsscsi | wc -l;lsscsi;sudo ethtool $(sudo facter -p default_interface) | grep -i speed;dmesg -T | grep -i error | tail -30;ifconfig -a;last -50;uptime | grep -v day;uptime;supervisorctl status;uname -r; supervisorctl status | grep -v day;dmesg -T | grep -i error | grep \"Hardware Error\" | tail -1000;df -kh; sudo cat /proc/mdstat;sudo cat /sys/block/sda/queue/rotational"))
+     #+END_SRC
+*** lsof 
+     #+BEGIN_SRC clojure :tangle core.clj
+ (defn lsof []
+   (let [c (me.raynes.conch.low-level/proc "lsof" "-iTCP" "-sTCP:LISTEN" "-P" "-n")]
+     (future (me.raynes.conch.low-level/stream-to-out c :out))))
+ #+END_SRC
+*** ssh-tunnel
+     #+BEGIN_SRC clojure :tangle core.clj
+ (defn ssh-tunnel [host port]
+   (let [c (me.raynes.conch.low-level/proc "ssh" (str "-NL" port ":127.0.0.1:" port) host)]
+     (future (me.raynes.conch.low-level/stream-to-out c :out))))
+ #+END_SRC
+*** clush
+     #+BEGIN_SRC clojure :tangle core.clj
+ (defn clush [host command]
+   (let [c (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command)]
+     (future (me.raynes.conch.low-level/stream-to-out c :out))))
+ #+END_SRC
+**** clush lsof
+       #+BEGIN_SRC clojure :tangle core.clj
+  (defn clush-lsof [host]
+    (clush host "sudo lsof -iTCP -sTCP:LISTEN -P -n"))
+  #+END_SRC
+**** clush supervisorctl status
+       #+BEGIN_SRC clojure :tangle core.clj
+  (defn clush-sup-stat [host]
+    (clush host "supervisorctl status"))
+
+  #+END_SRC
+**** os host diagnostics
+       #+BEGIN_SRC clojure :tangle core.clj
+  (defn clush-os-diagnostics [host]
+    (clush host os-diagnostics))
+
+  #+END_SRC
+**** clush dmesg
+       #+BEGIN_SRC clojure :tangle core.clj
+  (defn clush-dmesg [host]
+    (clush host "dmesg -T | grep -i error | wc -l"))
+  #+END_SRC
+
 ** hotload dependency
    #+BEGIN_SRC clojure :tangle core.clj
 (defmacro vxe-hotload-dependency [coordinates]

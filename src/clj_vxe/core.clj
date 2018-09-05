@@ -1,10 +1,13 @@
 (ns clj-vxe.core
-  (:require [yaml.core]
-            [clojure.data.xml]
-            [clj-http.client]
-            [cemerick.pomegranate]
-            [java-time])
-  (:use [clojure.java.shell :only [sh]]))
+  (:require 
+   [me.raynes.conch.low-level]
+   [yaml.core]
+   [clojure.data.xml]
+   [clj-http.client]
+   [cemerick.pomegranate]
+   [java-time])
+  (:use
+   [clojure.java.shell :only [sh]]))
 
 (defn expand-home [s]
   (if (.startsWith s "~")
@@ -217,6 +220,32 @@
   `(remove nil? (for [~cursor ~coll]
                   (do
                     ~@loop-body))))
+
+(def os-diagnostics (str "set -o xtrace; hostname -f;rolename -l;free -mh;dmesg -T | grep -i error | grep -v usb | wc -l ;dmesg -T | grep -i error | grep -i 'sd[a-z]' | tail -30 ;lsscsi | wc -l;lsscsi;sudo ethtool $(sudo facter -p default_interface) | grep -i speed;dmesg -T | grep -i error | tail -30;ifconfig -a;last -50;uptime | grep -v day;uptime;supervisorctl status;uname -r; supervisorctl status | grep -v day;dmesg -T | grep -i error | grep \"Hardware Error\" | tail -1000;df -kh; sudo cat /proc/mdstat;sudo cat /sys/block/sda/queue/rotational"))
+
+(defn lsof []
+  (let [c (me.raynes.conch.low-level/proc "lsof" "-iTCP" "-sTCP:LISTEN" "-P" "-n")]
+    (future (me.raynes.conch.low-level/stream-to-out c :out))))
+
+(defn ssh-tunnel [host port]
+  (let [c (me.raynes.conch.low-level/proc "ssh" (str "-NL" port ":127.0.0.1:" port) host)]
+    (future (me.raynes.conch.low-level/stream-to-out c :out))))
+
+(defn clush [host command]
+  (let [c (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command)]
+    (future (me.raynes.conch.low-level/stream-to-out c :out))))
+
+(defn clush-lsof [host]
+  (clush host "sudo lsof -iTCP -sTCP:LISTEN -P -n"))
+
+(defn clush-sup-stat [host]
+  (clush host "supervisorctl status"))
+
+(defn clush-os-diagnostics [host]
+  (clush host os-diagnostics))
+
+(defn clush-dmesg [host]
+  (clush host "dmesg -T | grep -i error | wc -l"))
 
 (defmacro vxe-hotload-dependency [coordinates]
   (do

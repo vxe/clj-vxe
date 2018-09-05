@@ -1,9 +1,10 @@
-(defproject clj-vxe "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject clj-vxe "0.2.0-SNAPSHOT"
+  :description "My dev utilities"
+  :url "https://github.com/vxe/clj-vxe"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[me.raynes/conch "0.8.0"]
+                 [org.clojure/clojure "1.8.0"]
                  [io.forward/yaml "1.0.8"]
                  [org.clojure/data.xml "0.0.8"]
                  [clj-http "3.8.0"]
