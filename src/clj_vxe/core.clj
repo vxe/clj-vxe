@@ -231,9 +231,13 @@
   (let [c (me.raynes.conch.low-level/proc "ssh" (str "-NL" port ":127.0.0.1:" port) host)]
     (future (me.raynes.conch.low-level/stream-to-out c :out))))
 
-(defn clush [host command]
-  (let [c (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command)]
-    (future (me.raynes.conch.low-level/stream-to-out c :out))))
+(defn clush
+  ([host command]
+   (let [c (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command)
+         output (me.raynes.conch.low-level/stream-to-out c :out)
+         ]))
+  ([host command pretty]
+   (me.raynes.conch.low-level/stream-to-string (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command) :out)))
 
 (defn clush-lsof [host]
   (clush host "sudo lsof -iTCP -sTCP:LISTEN -P -n"))

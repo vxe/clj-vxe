@@ -339,9 +339,13 @@ be in every project
  #+END_SRC
 *** clush
      #+BEGIN_SRC clojure :tangle core.clj
- (defn clush [host command]
-   (let [c (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command)]
-     (future (me.raynes.conch.low-level/stream-to-out c :out))))
+       (defn clush
+         ([host command]
+          (let [c (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command)
+                output (me.raynes.conch.low-level/stream-to-out c :out)
+                ]))
+         ([host command pretty]
+          (me.raynes.conch.low-level/stream-to-string (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command) :out)))
  #+END_SRC
 **** clush lsof
        #+BEGIN_SRC clojure :tangle core.clj
