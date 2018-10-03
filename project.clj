@@ -1,4 +1,4 @@
-(defproject clj-vxe "0.3.0-SNAPSHOT"
+(defproject clj-vxe "0.4.0-SNAPSHOT"
   :description "My dev utilities"
   :url "https://github.com/vxe/clj-vxe"
   :license {:name "Eclipse Public License"

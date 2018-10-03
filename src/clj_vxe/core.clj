@@ -237,7 +237,7 @@
          output (me.raynes.conch.low-level/stream-to-out c :out)
          ]))
   ([host command pretty]
-   (me.raynes.conch.low-level/stream-to-string (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-B" command) :out)))
+   (me.raynes.conch.low-level/stream-to-string (me.raynes.conch.low-level/proc "clush" "-o" "\"-A\"" "-w" host "-L" command) :out)))
 
 (defn clush-lsof [host]
   (clush host "sudo lsof -iTCP -sTCP:LISTEN -P -n"))
